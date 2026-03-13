@@ -1,6 +1,6 @@
 use std::io::{self, BufRead, BufReader, Read};
 
-struct BitReader<R: Read> {
+pub(crate) struct BitReader<R: Read> {
     inner: BufReader<R>,
     bit_pos: usize,
 }
@@ -17,6 +17,13 @@ impl<R: Read> BitReader<R> {
                 *x |= (buf[i] as u64) << (i * 8);
             }
             return Ok(buf.len() * 8);
+        }
+    }
+
+    pub fn seek_next_byte(&mut self) {
+        if self.bit_pos != 0 {
+            self.inner.consume(1);
+            self.bit_pos = 0;
         }
     }
 
@@ -48,17 +55,24 @@ impl<R: Read> BitReader<R> {
         return Ok(res);
     }
 
-    pub fn seek_next_byte(&mut self) {
-        if self.bit_pos != 0 {
-            self.inner.consume(1);
-            self.bit_pos = 0;
-        }
-    }
-
     // Unwrap the `BitReader<R>`, returning the inner `BufReader<R>`.
     // Note that the last unfinshed byte, if any, is lost.
     pub fn into_inner(mut self) -> BufReader<R> {
         self.seek_next_byte();
         return self.inner;
+    }
+
+    // Try to fill the specified buffer, returning how many bytes were read.
+    // Note that the last unfinshed byte, if any, is lost.
+    pub fn read_align_bytes(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        self.seek_next_byte();
+        return self.inner.read(buf);
+    }
+
+    // Fill the specified buffer. Returning error when can't.
+    // Note that the last unfinshed byte, if any, is lost.
+    pub fn read_align_bytes_exact(&mut self, buf: &mut [u8]) -> io::Result<()> {
+        self.seek_next_byte();
+        return self.inner.read_exact(buf);
     }
 }
