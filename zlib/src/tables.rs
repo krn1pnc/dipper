@@ -10,6 +10,8 @@ pub const FIXED_LITLEN_CODE_LENGTH: [u8; 288] = [
     7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8,
 ];
 
+pub const FIXED_DISTANCE_CODE_LENGTH: [u8; 30] = [5; 30];
+
 pub const LENGTH_EXTRA_BITS: [usize; 29] = [
     0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0,
 ];
@@ -27,4 +29,8 @@ pub const DISTANCE_EXTRA_BITS: [usize; 30] = [
 pub const DISTANCE_BASE: [usize; 30] = [
     1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193, 257, 385, 513, 769, 1025, 1537,
     2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577,
+];
+
+pub const CL_CODE_LENGTH_ORDER: [usize; 19] = [
+    16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15,
 ];
