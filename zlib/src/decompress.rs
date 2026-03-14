@@ -2,6 +2,7 @@ use std::io::{self, BufReader, Read};
 
 use crate::bitreader::BitReader;
 
+#[derive(Debug)]
 pub enum DecompressError {
     IO(io::Error),
     BadZlibHeader,
@@ -9,6 +10,7 @@ pub enum DecompressError {
     InvalidWindowLength,
     UnknownDictionary,
     InvalidUncompressedBlockLength,
+    InvalidCodeLength,
 }
 
 impl From<io::Error> for DecompressError {
