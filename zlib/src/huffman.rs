@@ -38,8 +38,6 @@ fn get_huffman_codes(
     }
     used_codes = used_codes + length_count[max_length];
 
-    print!("111\n");
-
     if used_codes != 1 << max_length {
         return Err(DecompressError::InvalidCodeLength);
     }
