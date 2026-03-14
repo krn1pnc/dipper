@@ -38,20 +38,33 @@ impl<R: Read> BitReader<R> {
         };
     }
 
+    pub fn peek_bits(&mut self, n: usize) -> io::Result<u64> {
+        assert!(n <= 57);
+
+        let mut bits = 0;
+        let bits_peeked = self.peek_u64_le(&mut bits)?;
+        let bits_available = bits_peeked - self.bit_pos;
+        if n > bits_available {
+            return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+        }
+        return Ok(bits >> self.bit_pos & ((1 << n) - 1));
+    }
+
+    pub fn consume_bits(&mut self, n: usize) -> io::Result<()> {
+        assert!(n <= 57);
+
+        self.inner.consume((self.bit_pos + n) / 8);
+        self.bit_pos = (self.bit_pos + n) % 8;
+        return Ok(());
+    }
+
     // Read up to 57 bits from the inner byte stream, LSB first.
     // `n`: number of bits to read, must be less than 57.
     pub fn read_bits(&mut self, n: usize) -> io::Result<u64> {
         assert!(n <= 57);
 
-        let mut res = 0;
-        let bits_peeked = self.peek_u64_le(&mut res)?;
-        let bits_available = bits_peeked - self.bit_pos;
-        if n > bits_available {
-            return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-        }
-        res = res >> self.bit_pos & ((1 << n) - 1);
-        self.inner.consume((self.bit_pos + n) / 8);
-        self.bit_pos = (self.bit_pos + n) % 8;
+        let res = self.peek_bits(n)?;
+        self.consume_bits(n)?;
         return Ok(res);
     }
 

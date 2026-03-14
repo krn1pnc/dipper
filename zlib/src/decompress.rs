@@ -1,6 +1,13 @@
 use std::io::{self, BufReader, Read};
 
-use crate::bitreader::BitReader;
+use crate::{
+    bitreader::BitReader,
+    huffman::HuffmanTable,
+    tables::{
+        DISTANCE_BASE, DISTANCE_EXTRA_BITS, FIXED_LITLEN_CODE_LENGTH, LENGTH_BASE,
+        LENGTH_EXTRA_BITS,
+    },
+};
 
 #[derive(Debug)]
 pub enum DecompressError {
@@ -11,6 +18,9 @@ pub enum DecompressError {
     UnknownDictionary,
     InvalidUncompressedBlockLength,
     InvalidCodeLength,
+    UnknownCompressedBlockType,
+    UnknownLengthSymbol,
+    UnknownDistanceSymbol,
 }
 
 impl From<io::Error> for DecompressError {
@@ -52,10 +62,11 @@ impl<R: Read> Decompressor<R> {
         return Ok(());
     }
 
-    fn run(&mut self) -> Result<Vec<u8>, DecompressError> {
+    pub fn run(&mut self) -> Result<Vec<u8>, DecompressError> {
         self.read_zlib_header()?;
 
         let mut res = Vec::new();
+        let mut fixed_litlen_huffman_table = None;
         loop {
             let bfinal = self.inner.read_bits(1)?;
 
@@ -75,14 +86,48 @@ impl<R: Read> Decompressor<R> {
                     self.inner.read_align_bytes_exact(&mut res[old_len..])?;
                 }
                 0b01 => {
-                    todo!()
+                    if fixed_litlen_huffman_table.is_none() {
+                        fixed_litlen_huffman_table =
+                            Some(HuffmanTable::try_from(&FIXED_LITLEN_CODE_LENGTH, false).unwrap());
+                    }
+
+                    let litlen_huffman_table = fixed_litlen_huffman_table.unwrap();
+                    loop {
+                        let bits_to_decode = self.inner.peek_bits(16)? as u16;
+                        let result = litlen_huffman_table.decode(bits_to_decode);
+                        self.inner.consume_bits(result.bits_used as usize)?;
+                        match result.symbol {
+                            0..=255 => res.push(result.symbol as u8),
+                            256 => break,
+                            257..=285 => {
+                                let len_symbol = (result.symbol & ((1 << 8) - 1)) as usize;
+                                let len = LENGTH_BASE[len_symbol]
+                                    + self.inner.read_bits(LENGTH_EXTRA_BITS[len_symbol])? as usize;
+
+                                let dist_symbol = self.inner.read_bits(5)? as usize;
+                                if dist_symbol > 29 {
+                                    return Err(DecompressError::UnknownDistanceSymbol);
+                                }
+                                let dist = DISTANCE_BASE[dist_symbol]
+                                    + self.inner.read_bits(DISTANCE_EXTRA_BITS[dist_symbol])?
+                                        as usize;
+
+                                let current_index = res.len();
+                                res.resize(current_index + len, 0);
+                                for i in 0..len {
+                                    res[current_index + i] = res[current_index + i - dist];
+                                }
+                            }
+                            _ => return Err(DecompressError::UnknownLengthSymbol),
+                        }
+                    }
+
+                    fixed_litlen_huffman_table = Some(litlen_huffman_table);
                 }
                 0b10 => {
                     todo!()
                 }
-                0b11 => {
-                    todo!()
-                }
+                0b11 => return Err(DecompressError::UnknownCompressedBlockType),
                 _ => unreachable!(),
             }
 

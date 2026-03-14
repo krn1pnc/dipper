@@ -38,6 +38,8 @@ fn get_huffman_codes(
     }
     used_codes = used_codes + length_count[max_length];
 
+    print!("111\n");
+
     if used_codes != 1 << max_length {
         return Err(DecompressError::InvalidCodeLength);
     }
@@ -59,24 +61,29 @@ fn get_packed_code(code: u16, length: u8) -> u16 {
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct DecodeResult {
-    symbol: u16,
-    bits_used: u8,
+    pub symbol: u16,
+    pub bits_used: u8,
 }
 
+#[derive(Debug)]
 pub struct HuffmanTable {
-    table: Vec<DecodeResult>,
+    table: Box<[DecodeResult; 1 << 16]>,
 }
 
 impl HuffmanTable {
+    pub fn new(table: Box<[DecodeResult; 1 << 16]>) -> Self {
+        return Self { table };
+    }
+
     pub fn try_from(lengths: &[u8], is_distance: bool) -> Result<Self, DecompressError> {
-        assert!(lengths.len() <= 286);
+        assert!(lengths.len() <= 288);
 
         let code_count = lengths.len();
 
         let mut codes = vec![0; code_count];
         get_huffman_codes(lengths, is_distance, &mut codes)?;
 
-        let mut table = vec![DecodeResult::default(); 1 << 16];
+        let mut table = Box::new([DecodeResult::default(); 1 << 16]);
         for i in 0..code_count {
             if lengths[i] == 0 {
                 continue;
@@ -93,7 +100,7 @@ impl HuffmanTable {
             }
         }
 
-        return Ok(Self { table });
+        return Ok(Self::new(table));
     }
 
     pub fn decode(&self, state: u16) -> DecodeResult {
