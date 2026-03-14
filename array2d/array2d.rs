@@ -1,6 +1,6 @@
 use std::ops::{Index, IndexMut};
 
-struct Array2d<T> {
+pub struct Array2d<T> {
     shape: (usize, usize),
     data: Vec<T>,
 }
