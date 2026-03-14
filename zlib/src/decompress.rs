@@ -1,7 +1,4 @@
-use std::{
-    io::{self, BufReader, Read},
-    ptr::read,
-};
+use std::io::{self, BufReader, Read};
 
 use crate::{
     bitreader::BitReader,

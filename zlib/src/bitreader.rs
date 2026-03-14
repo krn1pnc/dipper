@@ -75,13 +75,6 @@ impl<R: Read> BitReader<R> {
         return self.inner;
     }
 
-    // Try to fill the specified buffer, returning how many bytes were read.
-    // Note that the last unfinshed byte, if any, is lost.
-    pub fn read_align_bytes(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        self.seek_next_byte();
-        return self.inner.read(buf);
-    }
-
     // Fill the specified buffer. Returning error when can't.
     // Note that the last unfinshed byte, if any, is lost.
     pub fn read_align_bytes_exact(&mut self, buf: &mut [u8]) -> io::Result<()> {
