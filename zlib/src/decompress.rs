@@ -125,7 +125,7 @@ impl<R: Read> Decompressor<R> {
                 0..=255 => res.push(result.symbol as u8),
                 256 => break,
                 257..=285 => {
-                    let len_symbol = (result.symbol & ((1 << 8) - 1)) as usize;
+                    let len_symbol = (result.symbol - 257) as usize;
                     let len = LENGTH_BASE[len_symbol]
                         + self.inner.read_bits(LENGTH_EXTRA_BITS[len_symbol])? as usize;
 
