@@ -53,7 +53,7 @@ impl<R: Read> Decompressor<R> {
         if cinfo > 7 {
             return Err(DecompressError::InvalidWindowLength);
         }
-        self.window_len = 1 << cinfo;
+        self.window_len = 1 << (cinfo + 8);
 
         let fdict = flg >> 5 & 1;
         if fdict != 0 {
