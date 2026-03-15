@@ -39,7 +39,7 @@ impl<R: Read> Decompressor<R> {
     fn read_zlib_header(&mut self) -> Result<(), DecompressError> {
         let mut buf = [0; 2];
         self.inner.read_align_bytes_exact(&mut buf)?;
-        if u16::from_le_bytes(buf) % 31 != 0 {
+        if u16::from_be_bytes(buf) % 31 != 0 {
             return Err(DecompressError::BadZlibHeader);
         }
 
