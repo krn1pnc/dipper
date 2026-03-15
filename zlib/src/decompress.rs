@@ -203,7 +203,7 @@ impl<R: Read> Decompressor<R> {
                     let hdist = (self.inner.read_bits(5)? + 1) as usize;
                     let hclen = (self.inner.read_bits(4)? + 4) as usize;
 
-                    let mut clcl = vec![0; hclen];
+                    let mut clcl = [0; 19];
                     for i in 0..hclen {
                         clcl[CL_CODE_LENGTH_ORDER[i]] = self.inner.read_bits(3)? as u8;
                     }
