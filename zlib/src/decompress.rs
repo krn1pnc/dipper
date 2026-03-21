@@ -70,7 +70,7 @@ impl<R: Read> Decompressor<R> {
     ) -> Result<Vec<u8>, DecompressError> {
         let mut code_lengths = Vec::with_capacity(count);
         loop {
-            let bits_to_decode = self.inner.peek_bits(16)? as u16;
+            let bits_to_decode = self.inner.peek_bits(16)?;
             let result = code_length_table.decode(bits_to_decode);
             self.inner.consume_bits(result.bits_used as usize)?;
             match result.symbol {
@@ -118,7 +118,7 @@ impl<R: Read> Decompressor<R> {
         res: &mut Vec<u8>,
     ) -> Result<(), DecompressError> {
         loop {
-            let bits_to_decode = self.inner.peek_bits(16)? as u16;
+            let bits_to_decode = self.inner.peek_bits(16)?;
             let result = litlen_table.decode(bits_to_decode);
             self.inner.consume_bits(result.bits_used as usize)?;
             match result.symbol {
@@ -129,7 +129,7 @@ impl<R: Read> Decompressor<R> {
                     let len = LENGTH_BASE[len_symbol]
                         + self.inner.read_bits(LENGTH_EXTRA_BITS[len_symbol])? as usize;
 
-                    let bits_to_decode = self.inner.peek_bits(16)? as u16;
+                    let bits_to_decode = self.inner.peek_bits(16)?;
                     let result = dist_table.decode(bits_to_decode);
                     self.inner.consume_bits(result.bits_used as usize)?;
                     let dist_symbol = result.symbol as usize;
