@@ -237,4 +237,8 @@ impl<R: Read> Decompressor<R> {
             window_len: 0,
         };
     }
+
+    pub fn into_inner(self) -> BufReader<R> {
+        return self.inner.into_inner();
+    }
 }
