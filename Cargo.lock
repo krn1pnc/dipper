@@ -7,5 +7,12 @@ name = "array2d"
 version = "0.1.0"
 
 [[package]]
+name = "perf"
+version = "0.1.0"
+dependencies = [
+ "zlib",
+]
+
+[[package]]
 name = "zlib"
 version = "0.1.0"

@@ -1,0 +1,10 @@
+[package]
+name = "perf"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+zlib = { path = "../zlib" }
+
+[profile.release]
+debug = "line-tables-only"
