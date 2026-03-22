@@ -1,13 +1,6 @@
 use std::io::{self, BufReader, Read};
 
-use crate::{
-    bitreader::BitReader,
-    huffman::HuffmanTable,
-    tables::{
-        CL_CODE_LENGTH_ORDER, DISTANCE_BASE, DISTANCE_EXTRA_BITS, FIXED_DISTANCE_CODE_LENGTH,
-        FIXED_LITLEN_CODE_LENGTH, LENGTH_BASE, LENGTH_EXTRA_BITS,
-    },
-};
+use crate::{bitreader::BitReader, huffman::HuffmanTable, tables::*};
 
 #[derive(Debug)]
 pub enum DecompressError {
@@ -85,14 +78,10 @@ impl<R: Read> Decompressor<R> {
                         return Err(DecompressError::InvalidCodeLength);
                     }
                 }
-                17 => {
-                    let repeat_count = self.inner.read_bits(3)? + 3;
-                    for _ in 0..repeat_count {
-                        code_lengths.push(0);
-                    }
-                }
-                18 => {
-                    let repeat_count = self.inner.read_bits(7)? + 11;
+                17..=18 => {
+                    let repeat_symbol = (result.symbol - 17) as usize;
+                    let repeat_count = CL_BASE[repeat_symbol]
+                        + self.inner.read_bits(CL_EXTRA_BITS[repeat_symbol])? as usize;
                     for _ in 0..repeat_count {
                         code_lengths.push(0);
                     }

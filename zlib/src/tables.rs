@@ -34,3 +34,7 @@ pub const DISTANCE_BASE: [usize; 30] = [
 pub const CL_CODE_LENGTH_ORDER: [usize; 19] = [
     16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15,
 ];
+
+pub const CL_EXTRA_BITS: [usize; 2] = [3, 7];
+
+pub const CL_BASE: [usize; 2] = [3, 11];
