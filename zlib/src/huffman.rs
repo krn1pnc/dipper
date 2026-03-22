@@ -5,7 +5,9 @@ fn get_huffman_codes(
     is_distance: bool,
     codes: &mut [u16; 288],
 ) -> Result<(), DecompressError> {
-    assert!(lengths.len() <= 288);
+    if lengths.len() > 288 {
+        return Err(DecompressError::InvalidCodeLength);
+    }
 
     codes.fill(0);
 
@@ -49,7 +51,6 @@ fn get_huffman_codes(
 }
 
 fn get_packed_code(code: u16, length: u8) -> u16 {
-    assert!(length != 0);
     return code.reverse_bits() >> (16 - length);
 }
 
@@ -73,15 +74,10 @@ impl HuffmanTable {
     pub fn try_from(lengths: &[u8], is_distance: bool) -> Result<Self, DecompressError> {
         let code_count = lengths.len();
 
-        if code_count > 288 || (!is_distance && code_count <= 1) {
-            return Err(DecompressError::InvalidCodeLength);
-        }
-
-        let max_length = lengths.iter().max().cloned().unwrap_or(1);
-
         let mut codes = [0; 288];
         get_huffman_codes(lengths, is_distance, &mut codes)?;
 
+        let max_length = lengths.iter().max().cloned().unwrap_or(1);
         let mut table = vec![DecodeResult::default(); 1 << max_length];
         for i in 0..code_count {
             if lengths[i] == 0 {
